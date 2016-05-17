@@ -110,19 +110,19 @@ func main() {
 
 		if strings.HasPrefix(flag.Args()[0], "hue") {
 			log.Println("Adjusting hue")
-			log.Pritnln("Unimplemented")
+			log.Println("Unimplemented")
 			return
 		}
 
 		if strings.HasPrefix(flag.Args()[0], "kel") {
 			log.Println("Adjusting kelvin")
-			log.Pritnln("Unimplemented")
+			log.Println("Unimplemented")
 			return
 		}
 
 		if strings.HasPrefix(flag.Args()[0], "sat") {
 			log.Println("Adjusting saturation")
-			log.Pritnln("Unimplemented")
+			log.Println("Unimplemented")
 			return
 		}
 	}
