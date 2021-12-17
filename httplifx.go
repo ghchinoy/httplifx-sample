@@ -12,6 +12,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 var token string
@@ -19,12 +21,10 @@ var token string
 // init takes a flag (-token) or an environment variable (LIFXTOKEN) to set the
 // LIFX OAuth Access Token needed for HTTP API access.
 func init() {
-
-	tokenstr := flag.String("token", "", "LIFX OAuth Access Token")
+	flag.StringVar(&token, "token", "", "LIFX OAuth Access Token")
 	flag.Parse()
 
 	// Check for LIFX OAuth Access Token
-	token = string(*tokenstr)
 	if token == "" {
 		token = os.Getenv("LIFXTOKEN")
 	}
@@ -33,7 +33,6 @@ func init() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-
 }
 
 func main() {
@@ -130,7 +129,6 @@ func main() {
 }
 
 func setBrightness(bulbID string, brightness string) error {
-
 	brival, err := strconv.ParseFloat(brightness, 64)
 	if err != nil {
 		log.Printf("Can't parse %s to float.", brightness)
@@ -187,13 +185,12 @@ func toggleBulbs(bulbs []string) error {
 		}
 	}
 	if badness {
-		return errors.New("Multiple errors detected.")
+		return errors.New("multiple errors detected")
 	}
 	return nil
 }
 
 func toggleBulb(bulbID string) error {
-
 	client := &http.Client{}
 	durationstr := `{"duration":"2"}`
 	buf := strings.NewReader(durationstr)
@@ -226,7 +223,6 @@ func listBulbs() error {
 }
 
 func bulbStatus(bulbID string) error {
-
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.lifx.com/v1/lights/"+bulbID, nil)
 	if err != nil {
@@ -254,9 +250,25 @@ func bulbStatus(bulbID string) error {
 
 	var lights []Lifx
 	json.Unmarshal(msgbytes, &lights)
+	data := [][]string{}
 	for k, v := range lights {
-		fmt.Printf("%d %s %11s %3s %2.2f (%.2f, %v, %.2f)\n", k, v.ID, v.Label, v.Power, v.Brightness, v.Color.Hue, v.Color.Kelvin, v.Color.Saturation)
+		data = append(data, []string{
+			fmt.Sprintf("%d", k),
+			v.ID,
+			v.Label,
+			v.Power,
+			fmt.Sprintf("%.2f", v.Brightness),
+			fmt.Sprintf("%.2f", v.Color.Hue),
+			fmt.Sprintf("%.2f", v.Color.Kelvin),
+			fmt.Sprintf("%.2f", v.Color.Saturation),
+		})
 	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"idx", "ID", "Label", "Power", "Brightness", "Hue", "Kelvin", "Sat"})
+	table.SetBorder(false)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.AppendBulk(data)
+	table.Render()
 
 	return nil
 }
