@@ -13,8 +13,8 @@ type Lifx struct {
 	Color            Color     `json:"color"`
 	Effect           string    `json:"effect"`
 	Group            Group     `json:"group"`
-	Location         Group     `json:"location"`
-	Product          Product   `json:"product"`
+	Location         Group     `json:"location,omitempty"`
+	Product          Product   `json:"product,omitempty"`
 	LastSeen         time.Time `json:"last_seen"`
 	SecondsSinceSeen int       `json:"seconds_since_seen"`
 }
