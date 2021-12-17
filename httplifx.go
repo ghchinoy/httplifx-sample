@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -218,13 +219,17 @@ func toggleBulb(bulbID string) error {
 	return nil
 }
 
+// listBulbs list all lights
 func listBulbs() error {
+	// https://api.developer.lifx.com/docs/list-lights
 	return bulbStatus("all")
 }
 
+// bulbStatus individual bulb status (unless bulbID == "all")
 func bulbStatus(bulbID string) error {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.lifx.com/v1/lights/"+bulbID, nil)
+	url := fmt.Sprintf("https://api.lifx.com/v1/lights/%s", bulbID)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println("Can't construct HTTP request to list lightbulbs.")
 		return err
@@ -250,21 +255,28 @@ func bulbStatus(bulbID string) error {
 
 	var lights []Lifx
 	json.Unmarshal(msgbytes, &lights)
+	log.Printf("lights: %d", len(lights))
+	// sort by group name
+	sort.Slice(lights, func(i, j int) bool {
+		return lights[i].Group.Name < lights[j].Group.Name
+	})
 	data := [][]string{}
 	for k, v := range lights {
 		data = append(data, []string{
 			fmt.Sprintf("%d", k),
 			v.ID,
 			v.Label,
+			v.Group.Name,
 			v.Power,
 			fmt.Sprintf("%.2f", v.Brightness),
 			fmt.Sprintf("%.2f", v.Color.Hue),
-			fmt.Sprintf("%.2f", v.Color.Kelvin),
-			fmt.Sprintf("%.2f", v.Color.Saturation),
+			fmt.Sprintf("%.0f", v.Color.Kelvin),
+			fmt.Sprintf("%.1f", v.Color.Saturation),
+			//v.LastSeen.Format(time.RFC1123),
 		})
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"idx", "ID", "Label", "Power", "Brightness", "Hue", "Kelvin", "Sat"})
+	table.SetHeader([]string{"idx", "ID", "Label", "Group", "Power", "Brightness", "Hue", "Kelvin", "Sat"})
 	table.SetBorder(false)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.AppendBulk(data)
