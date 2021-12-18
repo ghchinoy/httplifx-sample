@@ -231,19 +231,19 @@ func bulbStatus(bulbID string) error {
 	url := fmt.Sprintf("https://api.lifx.com/v1/lights/%s", bulbID)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println("Can't construct HTTP request to list lightbulbs.")
+		log.Printf("can't construct HTTP request to list lightbulbs: %v", err)
 		return err
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Can't make an HTTP request to list lightbulbs.")
+		log.Printf("can't make an HTTP request to list lightbulbs: %v", err)
 		return err
 	}
 
 	msgbytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("Can't convert HTTP response to bytes.")
+		log.Printf("can't convert HTTP response to bytes")
 		return err
 	}
 
